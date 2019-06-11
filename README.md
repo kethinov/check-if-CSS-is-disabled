@@ -1,4 +1,7 @@
 # check-if-CSS-is-disabled
+
+[![npm](https://img.shields.io/npm/v/check-if-CSS-is-disabled.svg)](https://www.npmjs.com/package/check-if-CSS-is-disabled)
+
 Frontend JavaScript module that can determine if CSS is disabled in the browser.
 
 # Install
