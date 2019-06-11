@@ -66,3 +66,4 @@ typings/
 .vscode
 CONTRIBUTING.md
 CHANGELOG.md
+renovate.json
