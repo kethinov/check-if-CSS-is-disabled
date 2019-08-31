@@ -19,8 +19,8 @@ Once loaded into your application, usage is as follows:
 
 
 ```javascript
-var cssIsDisabled = require('cssIsDisabled')
-if (cssIsDisabled()) {
+var cssIsDisabled = require('check-if-css-is-disabled')()
+if (cssIsDisabled) {
   // do something if CSS is disabled
 }
 ```
