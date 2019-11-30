@@ -3,6 +3,10 @@
   "description": "Frontend JavaScript module that can determine if CSS is disabled in the browser.",
   "author": "Eric Newport <kethinov@gmail.com>",
   "version": "1.0.1",
+  "files": [
+    "dist/cssIsDisabled.js",
+    "cssIsDisabled.js"
+  ],
   "homepage": "https://github.com/kethinov/check-if-CSS-is-disabled",
   "license": "CC-BY-4.0",
   "main": "cssIsDisabled.js",
@@ -10,9 +14,9 @@
   "dependencies": {},
   "devDependencies": {
     "browserify": "~16.5.0",
-    "husky": "~3.0.5",
-    "lint-staged": "~9.4.0",
-    "standard": "~14.3.0"
+    "husky": "~3.1.0",
+    "lint-staged": "~9.5.0",
+    "standard": "~14.3.1"
   },
   "repository": {
     "type": "git",
@@ -40,5 +44,9 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/kethinov"
   }
 }
