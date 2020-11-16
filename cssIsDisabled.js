@@ -1,8 +1,8 @@
 module.exports = function () {
-  var cssdisabled = false // must be proven otherwise
-  var testel = document.createElement('div')
-  var currstyle
-  var body = document.body
+  let cssdisabled = false // must be proven otherwise
+  const testel = document.createElement('div')
+  let currstyle
+  const body = document.body
   testel.style.position = 'absolute'
   body.appendChild(testel)
   if (testel.currentStyle) {
