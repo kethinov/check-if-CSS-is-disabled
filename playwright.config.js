@@ -11,7 +11,7 @@ module.exports = {
     },
     {
       name: 'firefox',
-      use: { browserName: 'firefox'}
+      use: { browserName: 'firefox' }
     }
   ],
   workers: 1
