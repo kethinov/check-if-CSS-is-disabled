@@ -1,6 +1,7 @@
 # check-if-CSS-is-disabled
 
-[![npm](https://img.shields.io/npm/v/check-if-css-is-disabled.svg)](https://www.npmjs.com/package/check-if-css-is-disabled)
+[![Build Status](https://github.com/rooseveltframework/check-if-css-is-disabled/workflows/CI/badge.svg
+)](https://github.com/rooseveltframework/check-if-css-is-disabled/actions?query=workflow%3ACI) [![npm](https://img.shields.io/npm/v/check-if-css-is-disabled.svg)](https://www.npmjs.com/package/check-if-css-is-disabled)
 
 Frontend JavaScript module that can determine if CSS is disabled or if it failed to load, then take action to stop JS enhancements from applying if the CSS isn't working first.
 
