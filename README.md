@@ -38,7 +38,7 @@ It's important for that script to be inlined *before* any `<link>` tags so that 
 Then in your JavaScript, include this module before any other JS executes. Here's an example using the CommonJS version:
 
 ```javascript
-require('check-if-css-is-disabled')()
+require('check-if-css-is-disabled')() // this will stop the JS from executing if CSS is disabled or a CSS file fails to load; it will also remove any existing CSS from the DOM
 ```
 
 Another way to use it:
@@ -65,8 +65,9 @@ To listen for the `cssDisabled` event, do this:
 
 ```javascript
 window.addEventListener('cssDisabled', (event) => {
+  // this event fires if a CSS file fails to load after the first page load; during normal usage of the app
   // the contents of `event.detail.message` will tell you how CSS was disabled
-  // undo any DOM manipulations or perform other actions
+  // you can use this event to undo any DOM manipulations that were already performed or to perform whatever other actions that are appropriate for your app's use case when a CSS file fails to load
 })
 ```
 
