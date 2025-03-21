@@ -4,6 +4,11 @@
 
 - Put your changes here...
 
+## 2.0.2
+
+- Fixed a bug that would prevent the module from detecting new `<link>` tags inserted into the page after the DOM loads.
+- Fixed a bug that would cause the module to remove CSS files overly aggressively.
+
 ## 2.0.1
 
 - Fixed docs issues.
