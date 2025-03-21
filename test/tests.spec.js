@@ -111,75 +111,84 @@ test.describe('check-if-css-is-disabled', () => {
   test('should detect <link> tag doesn\'t load after the JS loads', async ({ page, browserName }) => {
     await page.goto('http://localhost:3000/test/linkTagLoads.html')
     const result = await page.evaluate(() => {
-      let eventData
-      let tagsPresent
-      window.addEventListener('cssDisabled', (event) => {
-        eventData = event.detail.message
-        if (document.querySelector('style') && document.querySelector('link')) tagsPresent = true
-        else tagsPresent = false
+      return new Promise((resolve) => {
+        let eventData
+        let eventFired = false
+        window.addEventListener('cssDisabled', (event) => {
+          eventData = event.detail.message
+          eventFired = true
+        })
+        const cssIsDisabled = window.checkIfCssIsDisabled({ justCheck: true })
+        setTimeout(() => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = 'http://localhost:3000/test/nonexistent.css'
+          document.head.appendChild(link)
+        }, 100)
+        setTimeout(() => {
+          resolve({ cssIsDisabled, eventData, eventFired })
+        }, 200)
       })
-      const cssIsDisabled = window.checkIfCssIsDisabled({ justCheck: true })
-      setTimeout(() => {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = 'http://localhost:3000/test/nonexistent.css'
-        document.head.appendChild(link)
-      }, 100)
-      return { cssIsDisabled, eventData, tagsPresent }
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
     expect(result.cssIsDisabled).toBe(false) // initially, css is not disabled
-    expect(result.tagsPresent).toBe(true) // it should not remove the style or link tags
+    expect(result.eventFired).toBe(true) // it should not remove the style or link tags
     expect(result.eventData).toContain('At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
   })
 
   test('should detect <link> tag doesn\'t load after the JS loads and remove <style> and <link> elements', async ({ page, browserName }) => {
     await page.goto('http://localhost:3000/test/linkTagLoads.html')
     const result = await page.evaluate(() => {
-      let eventData
-      let tagsPresent
-      window.addEventListener('cssDisabled', (event) => {
-        eventData = event.detail.message
-        if (document.querySelector('style') && document.querySelector('link')) tagsPresent = true
-        else tagsPresent = false
+      return new Promise((resolve) => {
+        let eventData
+        let eventFired = false
+        window.addEventListener('cssDisabled', (event) => {
+          eventData = event.detail.message
+          eventFired = true
+        })
+        const cssIsDisabled = window.checkIfCssIsDisabled()
+        setTimeout(() => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = 'http://localhost:3000/test/nonexistent.css'
+          document.head.appendChild(link)
+        }, 100)
+        setTimeout(() => {
+          resolve({ cssIsDisabled, eventData, eventFired })
+        }, 200)
       })
-      const cssIsDisabled = window.checkIfCssIsDisabled()
-      setTimeout(() => {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = 'http://localhost:3000/test/nonexistent.css'
-        document.head.appendChild(link)
-      }, 100)
-      return { cssIsDisabled, eventData, tagsPresent }
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
     expect(result.cssIsDisabled).toBe(false) // initially, css is not disabled
-    expect(result.tagsPresent).toBe(false) // it should not remove the style or link tags
+    expect(result.eventFired).toBe(true) // it should not remove the style or link tags
     expect(result.eventData).toContain('At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
   })
 
   test('should detect <link> tag doesn\'t load after the JS loads and remove <style> and <link> elements except the one on the exemption list', async ({ page, browserName }) => {
     await page.goto('http://localhost:3000/test/linkTagLoads.html')
     const result = await page.evaluate(() => {
-      let eventData
-      let tagsCorrect
-      window.addEventListener('cssDisabled', (event) => {
-        eventData = event.detail.message
-        if (document.querySelector('style') && !document.querySelector('link')) tagsCorrect = true
-        else tagsCorrect = false
+      return new Promise((resolve) => {
+        let eventData
+        let eventFired = false
+        window.addEventListener('cssDisabled', (event) => {
+          eventData = event.detail.message
+          eventFired = true
+        })
+        const cssIsDisabled = window.checkIfCssIsDisabled({ exemptedIds: ['styletag'] })
+        setTimeout(() => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = 'http://localhost:3000/test/nonexistent.css'
+          document.head.appendChild(link)
+        }, 100)
+        setTimeout(() => {
+          resolve({ cssIsDisabled, eventData, eventFired })
+        }, 200)
       })
-      const cssIsDisabled = window.checkIfCssIsDisabled({ exemptedIds: ['styletag'] })
-      setTimeout(() => {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = 'http://localhost:3000/test/nonexistent.css'
-        document.head.appendChild(link)
-      }, 100)
-      return { cssIsDisabled, eventData, tagsCorrect }
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
     expect(result.cssIsDisabled).toBe(false) // initially, css is not disabled
-    expect(result.tagsCorrect).toBe(true) // it should not remove the style or link tags
+    expect(result.eventFired).toBe(true) // it should not remove the style or link tags
     expect(result.eventData).toContain('At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
   })
 })

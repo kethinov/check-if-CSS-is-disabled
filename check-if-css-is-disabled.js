@@ -6,21 +6,39 @@ module.exports = (params) => {
   document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
     link.addEventListener('error', handleCssAssetFailingToLoad)
   })
+
+  // use MutationObserver to attach error event listener to new link tags
+  const observer = new window.MutationObserver((mutationsList) => {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(node => {
+          if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
+            node.addEventListener('error', handleCssAssetFailingToLoad)
+          }
+        })
+      }
+    }
+  })
+
+  // start observing the document for added nodes
+  observer.observe(document.head, { childList: true, subtree: true })
+
   function handleCssAssetFailingToLoad (errorEvent) {
     if (errorEvent) window.linkTagError = true
 
     // remove all stylesheets if any fail to load, but only if the justCheck flag is falsey
-    if (!justCheck) {
+    if (!justCheck && window.linkTagError) {
       for (const link of document.querySelectorAll('link[rel="stylesheet"]')) if (!exemptedIds.includes(link.id)) link.remove()
       for (const style of document.querySelectorAll('style')) if (!exemptedIds.includes(style.id)) style.remove()
     }
-    window.dispatchEvent(new CustomEvent('cssDisabled', {
-      detail: {
-        message: 'At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.'
-      }
-    }))
-    if (window.linkTagError) return true // return true if a previous error has been logged
-    else return !!errorEvent // return true if this function is called by an error event and return false if it is called directly below and no previous error has been logged
+    if (window.linkTagError) {
+      window.dispatchEvent(new CustomEvent('cssDisabled', {
+        detail: {
+          message: 'At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.'
+        }
+      }))
+      return true
+    } else return !!errorEvent // return true if this function is called by an error event and return false if it is called directly below and no previous error has been logged
   }
 
   // test if the browser has explicitly disabled CSS

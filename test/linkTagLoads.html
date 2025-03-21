@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>check-if-css-is-disabled test page: link tag that loads</title>
-  <script>window.addEventListener('error', (event) => { if (event.target.tagName.toLowerCase() === 'link') { window.linkTagError = true } }, true)</script>
+  <script>window.addEventListener('error', (event) => { if (event?.target?.tagName?.toLowerCase() === 'link') { window.linkTagError = true } }, true)</script>
   <style id="styletag">body {font-family: sans-serif}</style>
   <link id="linktag" rel="stylesheet" href="test.css">
   <script src="../dist/check-if-css-is-disabled.js" defer></script>
