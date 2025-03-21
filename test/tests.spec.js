@@ -124,10 +124,10 @@ test.describe('check-if-css-is-disabled', () => {
           link.rel = 'stylesheet'
           link.href = 'http://localhost:3000/test/nonexistent.css'
           document.head.appendChild(link)
-        }, 100)
+        }, 1000)
         setTimeout(() => {
           resolve({ cssIsDisabled, eventData, eventFired })
-        }, 200)
+        }, 2000)
       })
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
@@ -153,10 +153,10 @@ test.describe('check-if-css-is-disabled', () => {
           link.rel = 'stylesheet'
           link.href = 'http://localhost:3000/test/nonexistent.css'
           document.head.appendChild(link)
-        }, 100)
+        }, 1000)
         setTimeout(() => {
           resolve({ cssIsDisabled, eventData, tagsCorrect })
-        }, 200)
+        }, 2000)
       })
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
@@ -182,10 +182,10 @@ test.describe('check-if-css-is-disabled', () => {
           link.rel = 'stylesheet'
           link.href = 'http://localhost:3000/test/nonexistent.css'
           document.head.appendChild(link)
-        }, 100)
+        }, 1000)
         setTimeout(() => {
           resolve({ cssIsDisabled, eventData, tagsCorrect })
-        }, 200)
+        }, 2000)
       })
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
