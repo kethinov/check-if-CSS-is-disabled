@@ -4,6 +4,12 @@
 
 - Put your changes here...
 
+## 2.0.1
+
+- Fixed docs issues.
+- Fixed bundling issue.
+- Updated dependencies.
+
 ## 2.0.0
 
 - Added feature to detect if stylesheets failed to load. If a CSS file fails to load, this module will emit an event called `cssDisabled`.

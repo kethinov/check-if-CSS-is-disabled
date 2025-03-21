@@ -8,17 +8,17 @@
       "url": "https://github.com/rooseveltframework/check-if-CSS-is-disabled/graphs/contributors"
     }
   ],
-  "version": "2.0.0",
+  "version": "2.0.1",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
-      "import": "./dist/check-if-css-is-disabled.js.mjs",
-      "require": "./dist/check-if-css-is-disabled.js.cjs"
+      "import": "./dist/check-if-css-is-disabled.mjs",
+      "require": "./dist/check-if-css-is-disabled.cjs"
     },
     "./min": {
-      "default": "./dist/check-if-css-is-disabled.js.min.mjs"
+      "default": "./dist/check-if-css-is-disabled.min.mjs"
     }
   },
   "homepage": "https://github.com/rooseveltframework/check-if-CSS-is-disabled",
@@ -26,7 +26,7 @@
   "main": "check-if-css-is-disabled.js.js",
   "devDependencies": {
     "@jsdevtools/coverage-istanbul-loader": "3.0.5",
-    "@playwright/test": "1.51.0",
+    "@playwright/test": "1.51.1",
     "express": "4.21.2",
     "nyc": "17.1.0",
     "standard": "17.1.2",

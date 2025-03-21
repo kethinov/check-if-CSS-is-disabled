@@ -28,7 +28,7 @@ The package is distributed with the following builds available:
 Place this `<script>` tag with a small amount of inline JS above any `<link>` tags in your HTML:
 
 ```html
-<script>window.addEventListener('error', (event) => { if (event.target.tagName.toLowerCase() === 'link') { window.linkTagError = true } }, true)</script>
+<script>window.addEventListener('error', (event) => { if (event?.target?.tagName?.toLowerCase() === 'link') { window.linkTagError = true } }, true)</script>
 ```
 
 That will make it possible for this library to listen for any CSS files that fail to load.
@@ -36,6 +36,12 @@ That will make it possible for this library to listen for any CSS files that fai
 It's important for that script to be inlined *before* any `<link>` tags so that if any `<link>` tag fails to load, this module will be made aware of that even if this module is initialized after the CSS files are loaded or fail to load.
 
 Then in your JavaScript, include this module before any other JS executes. Here's an example using the CommonJS version:
+
+```javascript
+require('check-if-css-is-disabled')()
+```
+
+Another way to use it:
 
 ```javascript
 const checkIfCssIsDisabled = require('check-if-css-is-disabled')
