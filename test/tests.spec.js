@@ -141,10 +141,11 @@ test.describe('check-if-css-is-disabled', () => {
     const result = await page.evaluate(() => {
       return new Promise((resolve) => {
         let eventData
-        let eventFired = false
+        let tagsCorrect = false
         window.addEventListener('cssDisabled', (event) => {
           eventData = event.detail.message
-          eventFired = true
+          if (!document.querySelector('style') && !document.querySelector('link')) tagsCorrect = true
+          else tagsCorrect = false
         })
         const cssIsDisabled = window.checkIfCssIsDisabled()
         setTimeout(() => {
@@ -154,13 +155,13 @@ test.describe('check-if-css-is-disabled', () => {
           document.head.appendChild(link)
         }, 100)
         setTimeout(() => {
-          resolve({ cssIsDisabled, eventData, eventFired })
+          resolve({ cssIsDisabled, eventData, tagsCorrect })
         }, 200)
       })
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
     expect(result.cssIsDisabled).toBe(false) // initially, css is not disabled
-    expect(result.eventFired).toBe(true) // it should not remove the style or link tags
+    expect(result.tagsCorrect).toBe(true) // it should not remove the style or link tags
     expect(result.eventData).toContain('At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
   })
 
@@ -169,10 +170,11 @@ test.describe('check-if-css-is-disabled', () => {
     const result = await page.evaluate(() => {
       return new Promise((resolve) => {
         let eventData
-        let eventFired = false
+        let tagsCorrect = false
         window.addEventListener('cssDisabled', (event) => {
           eventData = event.detail.message
-          eventFired = true
+          if (document.querySelector('style') && !document.querySelector('link')) tagsCorrect = true
+          else tagsCorrect = false
         })
         const cssIsDisabled = window.checkIfCssIsDisabled({ exemptedIds: ['styletag'] })
         setTimeout(() => {
@@ -182,13 +184,13 @@ test.describe('check-if-css-is-disabled', () => {
           document.head.appendChild(link)
         }, 100)
         setTimeout(() => {
-          resolve({ cssIsDisabled, eventData, eventFired })
+          resolve({ cssIsDisabled, eventData, tagsCorrect })
         }, 200)
       })
     })
     await page.waitForTimeout(1000) // wait for the event to be triggered
     expect(result.cssIsDisabled).toBe(false) // initially, css is not disabled
-    expect(result.eventFired).toBe(true) // it should not remove the style or link tags
+    expect(result.tagsCorrect).toBe(true) // it should not remove the style or link tags
     expect(result.eventData).toContain('At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
   })
 })
