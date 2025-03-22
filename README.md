@@ -38,28 +38,15 @@ It's important for that script to be inlined *before* any `<link>` tags so that 
 Then in your JavaScript, include this module before any other JS executes. Here's an example using the CommonJS version:
 
 ```javascript
-require('check-if-css-is-disabled')() // this will stop the JS from executing if CSS is disabled or a CSS file fails to load; it will also remove any existing CSS from the DOM
+// this will stop the JS from executing if CSS is disabled or a CSS file fails to load; it will also remove any existing CSS from the DOM
+require('check-if-css-is-disabled')()
 ```
-
-Another way to use it:
-
-```javascript
-const checkIfCssIsDisabled = require('check-if-css-is-disabled')
-const cssIsDisabled = checkIfCssIsDisabled(params)
-if (cssIsDisabled) {
-  // do things if CSS is disabled
-}
-```
-
-The constructor will return `true` if CSS is disabled and `false` if it is not. All params are optional.
 
 By default, this module will also take the following actions in response to CSS being disabled or any `<link>` tag failing to load:
 
 - If CSS is disabled at the browser level, this module will throw a JS error to prevent any further JS from executing.
 - If a CSS file fails to load at any time during your application's execution, this module will remove all `<link>` tags and `<style>` tags from the DOM and emit the `cssDisabled` event so that you can undo any DOM manipulations and then stop any further JS from executing yourself.
   - You can exempt certain `<link>` or `<style>` tags from being removed by supplying a list of IDs to `params`, e.g. `{ exemptedIds: ['someTagToKeepById', 'someOtherTagToKeepById', 'etc'] }` where an example tag to not remove would be `<style id="someTagToKeep">...</style>`.
-
-You can prevent any of the above actions from being taken by supplying a `justCheck` flag to `params` e.g. `{ justCheck: true }`, after which you can handle responding to CSS being disabled or a `<link>` tag not loading entirely yourself.
 
 To listen for the `cssDisabled` event, do this:
 
@@ -69,6 +56,16 @@ window.addEventListener('cssDisabled', (event) => {
   // the contents of `event.detail.message` will tell you how CSS was disabled
   // you can use this event to undo any DOM manipulations that were already performed or to perform whatever other actions that are appropriate for your app's use case when a CSS file fails to load
 })
+```
+
+You can prevent any of the above actions from being taken by supplying a `justCheck` flag to `params` e.g. `{ justCheck: true }`, after which you can handle responding to CSS being disabled or a `<link>` tag not loading entirely yourself like this:
+
+```javascript
+const checkIfCssIsDisabled = require('check-if-css-is-disabled')
+const cssIsDisabled = checkIfCssIsDisabled({ justCheck: true }) // the constructor will return `true` if CSS is disabled and `false` if it is not; all params are optional
+if (cssIsDisabled) {
+  // do things if CSS is disabled
+}
 ```
 
 *(The `cssDisabled` event will be emitted regardless of whether the `justCheck` flag is set to true or not.)*
