@@ -42,7 +42,7 @@ Then in your JavaScript, include this module before any other JS executes. Here'
 require('check-if-css-is-disabled')()
 ```
 
-By default, this module will also take the following actions in response to CSS being disabled or any `<link>` tag failing to load:
+By default, this module will take the following actions in response to CSS being disabled or any `<link>` tag failing to load:
 
 - If CSS is disabled at the browser level, this module will throw a JS error to prevent any further JS from executing.
 - If a CSS file fails to load at any time during your application's execution, this module will remove all `<link>` tags and `<style>` tags from the DOM and emit the `cssDisabled` event so that you can undo any DOM manipulations and then stop any further JS from executing yourself.
