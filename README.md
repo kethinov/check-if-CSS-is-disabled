@@ -52,9 +52,9 @@ To listen for the `cssDisabled` event, do this:
 
 ```javascript
 window.addEventListener('cssDisabled', (event) => {
-  // this event fires if a CSS file fails to load after the first page load; during normal usage of the app
-  // the contents of `event.detail.message` will tell you how CSS was disabled
-  // you can use this event to undo any DOM manipulations and then stop any further JS from executing yourself
+  // undo any DOM manipulations and then stop any further JS from executing
+  document.body.classList.replace('js', 'no-js') // example DOM manipulation to undo
+  throw new Error('A CSS file failed to load at some point during the app\'s usage. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
 })
 ```
 
