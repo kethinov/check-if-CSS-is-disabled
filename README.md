@@ -28,7 +28,7 @@ The package is distributed with the following builds available:
 Place this `<script>` tag with a small amount of inline JS above any `<link>` tags in your HTML:
 
 ```html
-<script>window.addEventListener('error', (event) => { if (event?.target?.tagName?.toLowerCase() === 'link') { window.linkTagError = true } }, true)</script>
+<script>window.addEventListener('error', (event) => { if (event?.target?.tagName === 'LINK') { window.linkTagError = true } }, true)</script>
 ```
 
 That will make it possible for this library to listen for any CSS files that fail to load.
