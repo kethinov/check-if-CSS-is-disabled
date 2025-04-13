@@ -10,5 +10,7 @@ This module was built and is maintained by the [Roosevelt web framework](https:/
 
 <details open>
   <summary>Documentation</summary>
-  - [Usage](./USAGE.md)
+  <ul>
+    <li><a href="./USAGE.md">Usage</a></li>
+  </ul>
 </details>
