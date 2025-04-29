@@ -1,9 +1,3 @@
-# check-if-css-is-disabled changelog
-
-## Next version
-
-- Put your changes here...
-
 ## 2.0.2
 
 - Fixed a bug that would prevent the module from detecting new `<link>` tags inserted into the page after the DOM loads.
