@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/check-if-css-is-disabled.svg)](https://www.npmjs.com/package/check-if-css-is-disabled) ☂️ **check-if-css-is-disabled**
+☂️ **check-if-css-is-disabled** [![npm](https://img.shields.io/npm/v/check-if-css-is-disabled.svg)](https://www.npmjs.com/package/check-if-css-is-disabled)
 
 Frontend JavaScript module that can determine if CSS is disabled or if it failed to load, then take action to stop JS enhancements from applying if the CSS isn't working first.
 

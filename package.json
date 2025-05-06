@@ -22,7 +22,7 @@
       "default": "./dist/check-if-css-is-disabled.min.mjs"
     }
   },
-  "homepage": "https://github.com/rooseveltframework/check-if-CSS-is-disabled",
+  "homepage": "https://rooseveltframework.org/docs/check-if-CSS-is-disabled/latest",
   "license": "CC-BY-4.0",
   "main": "check-if-css-is-disabled.js.js",
   "devDependencies": {
