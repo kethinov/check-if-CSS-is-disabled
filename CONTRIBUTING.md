@@ -16,3 +16,4 @@ If you are a maintainer of check-if-css-is-disabled, please follow the following
 - Open and merge a pull request with those changes.
 - Tag the merge commit as the a new release version number.
 - Publish commit to npm.
+- Submit a pull request to the Roosevelt website [following the instructions here](https://github.com/rooseveltframework/roosevelt-website/blob/main/CONTRIBUTING.md).
