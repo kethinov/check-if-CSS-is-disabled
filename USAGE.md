@@ -56,3 +56,34 @@ if (cssIsDisabled) {
 ```
 
 *(The `cssDisabled` event will be emitted regardless of whether the `justCheck` flag is set to true or not.)*
+
+## Restoring the initial markup
+
+If CSS fails, any JS enhancements that already applied can leave the page in a worse state than no JS at all, because the enhanced DOM was designed for styles that aren't there. To help with that, this module can keep a copy of the markup exactly as the server sent it and hand you a function that puts it back.
+
+This is opt-in, and restoring never happens automatically. Set the `snapshot` flag to `params` e.g. `{ snapshot: true }` to capture the markup, then call `restoreInitialMarkup()` yourself from your `cssDisabled` listener:
+
+```javascript
+const checkIfCssIsDisabled = require('check-if-css-is-disabled')
+
+window.addEventListener('cssDisabled', (event) => {
+
+  // tear down anything that must not survive the restore first here
+  
+  event.detail.restoreInitialMarkup() // puts the <body> back to how the server sent it
+})
+
+checkIfCssIsDisabled({ snapshot: true }) // call this before your enhancements run
+```
+
+`restoreInitialMarkup` is only present on `event.detail` when the `snapshot` flag was set, so its absence tells you that you never opted in.
+
+### Limitations
+
+Restoring replaces the `<body>`, and event listeners bound to the elements inside it die along with the nodes they were attached to. Several things are not covered, and the ones that matter most are the ones you should handle in your `cssDisabled` listener *before* calling `restoreInitialMarkup()`:
+
+- **Custom elements re-run.** Restoring inserts fresh copies of your custom elements, so their constructors and `connectedCallback` run again and they re-enhance themselves. If your page uses web components, deactivate or unregister them in your listener before restoring, otherwise you will get an enhanced DOM back instead of the original markup.
+- **`window` and `document` listeners survive.** They are not inside `<body>`, so restoring cannot remove them. Remove any you added yourself.
+- **Form state resets.** Values typed by the user, checked boxes, and selected options all go back to how the page was served. Take care to avoid not destroying user input.
+- **Timers, observers, and in-flight requests keep running.** `setInterval`, `requestAnimationFrame` loops, `MutationObserver`, `IntersectionObserver`, and pending `fetch` calls are unaffected. Clear them yourself.
+- **Frameworks will not notice.** A framework that rendered into the page still holds references to the nodes that were just replaced. Its listeners are gone but its internal state is not, so it may log errors if something later tries to update. Tear the framework down before restoring.
