@@ -1,4 +1,4 @@
-const { test, expect, firefox } = require('@playwright/test')
+const { test, expect } = require('@playwright/test')
 const path = require('path')
 const fs = require('fs')
 const express = require('express')
@@ -21,7 +21,9 @@ test.describe('check-if-css-is-disabled', () => {
       const text = msg.text()
       if (text.includes('net::ERR_EMPTY_RESPONSE') ||
           text.includes('MIME type') ||
-          text.includes('X-Content-Type-Options')) {
+          text.includes('X-Content-Type-Options') ||
+          text.includes('Content-Security-Policy') || // firefox spells it with hyphens
+          text.includes('Content Security Policy')) { // chromium spells it with spaces
         return
       }
       // print everything else, including the test page's console logs
@@ -85,27 +87,75 @@ test.describe('check-if-css-is-disabled', () => {
     expect(result.eventData).toContain('At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
   })
 
-  // TODO: this test does not work; this feature needs to be manually tested by opening test/linkTagLoads.html and typing `checkIfCssIsDisabled()` into the browser console
-  test.skip('should detect when CSS is disabled in Firefox', async ({ browserName }) => {
-    if (browserName !== 'firefox') test.skip() // chrome does not have this feature
-    const browser = await firefox.launch({
-      headless: false, // set to false to see the browser
-      firefoxUserPrefs: {
-        'font.size.variable.x-western': 250, // works
-        'layout.css.enabled': false // does not work; this firefox pref appears to no longer exist in about:config
+  // Firefox's "View > Page Style > No Style" cannot be driven from Playwright: it's
+  // docShell.authorStyleDisabled, which is chrome-privileged and unreachable from page
+  // context, and the old layout.css.enabled pref no longer exists. What a CSS-disabled
+  // browser actually presents to this module is an author style that never applies, so
+  // these tests reproduce that signal directly by stubbing getComputedStyle to report the
+  // UA default for position. Toggling the real browser feature still needs a manual
+  // check: open test/linkTagLoads.html, pick View > Page Style > No Style, then run
+  // checkIfCssIsDisabled() in the console.
+
+  test('should detect when CSS is disabled', async ({ page, browserName }) => {
+    await page.goto('http://localhost:3000/test/linkTagLoads.html')
+    const result = await page.evaluate(() => {
+      const real = document.defaultView.getComputedStyle.bind(document.defaultView)
+      document.defaultView.getComputedStyle = (element, pseudoElement) => ({
+        getPropertyValue: (property) => property === 'position' ? 'static' : real(element, pseudoElement).getPropertyValue(property)
+      })
+      try {
+        let eventData
+        window.addEventListener('cssDisabled', (event) => {
+          eventData = event.detail.message
+        })
+        const cssIsDisabled = window.checkIfCssIsDisabled({ justCheck: true })
+        return { cssIsDisabled, eventData }
+      } finally {
+        document.defaultView.getComputedStyle = real
       }
     })
-    const context = await browser.newContext()
-    const page = await context.newPage()
-    page.on('console', msg => { console.log(msg.text()) })
+    expect(result.cssIsDisabled).toBe(true)
+    expect(result.eventData).toContain('CSS is disabled. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
+  })
+
+  test('should detect when CSS is disabled and stop execution of the JS', async ({ page, browserName }) => {
     await page.goto('http://localhost:3000/test/linkTagLoads.html')
-    await page.waitForTimeout(5000) // wait for 5 seconds to see if it worked
+    let error
+    try {
+      await page.evaluate(() => {
+        const real = document.defaultView.getComputedStyle.bind(document.defaultView)
+        document.defaultView.getComputedStyle = (element, pseudoElement) => ({
+          getPropertyValue: (property) => property === 'position' ? 'static' : real(element, pseudoElement).getPropertyValue(property)
+        })
+        try {
+          return window.checkIfCssIsDisabled()
+        } finally {
+          document.defaultView.getComputedStyle = real
+        }
+      })
+    } catch (e) {
+      error = e
+    }
+    expect(error).toBeDefined()
+    expect(error.message).toContain('CSS is disabled. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
+  })
+
+  // unlike the two tests above, this one disables CSS for real: a Content-Security-Policy
+  // of style-src 'none' makes the browser refuse the style attribute the module sets, so
+  // the detection runs end to end with no stubbing
+  test('should detect when CSS is disabled by a Content-Security-Policy', async ({ page, browserName }) => {
+    await page.goto('http://localhost:3000/test/cssDisabledViaCsp.html')
     const result = await page.evaluate(() => {
+      let eventData
+      window.addEventListener('cssDisabled', (event) => {
+        eventData = event.detail.message
+      })
       const cssIsDisabled = window.checkIfCssIsDisabled({ justCheck: true })
-      return cssIsDisabled
+      return { cssIsDisabled, eventData, linkTagError: !!window.linkTagError }
     })
-    expect(result).toBe(true)
-    await browser.close()
+    expect(result.cssIsDisabled).toBe(true)
+    expect(result.eventData).toContain('CSS is disabled. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
+    expect(result.linkTagError).toBe(false) // proves the disabled-CSS check fired, not the failed-asset check
   })
 
   test('should detect <link> tag doesn\'t load after the JS loads', async ({ page, browserName }) => {
@@ -192,5 +242,121 @@ test.describe('check-if-css-is-disabled', () => {
     expect(result.cssIsDisabled).toBe(false) // initially, css is not disabled
     expect(result.tagsCorrect).toBe(true) // it should not remove the style or link tags
     expect(result.eventData).toContain('At least one stylesheet failed to load. It is unsafe to execute any further JavaScript if the CSS has not loaded properly.')
+  })
+
+  test('should restore the initial markup when the snapshot flag is set', async ({ page, browserName }) => {
+    await page.goto('http://localhost:3000/test/linkTagLoads.html')
+    const result = await page.evaluate(() => {
+      return new Promise((resolve) => {
+        const out = {}
+        let listenerFired = 0
+        window.addEventListener('cssDisabled', (event) => {
+          out.hasRestore = typeof event.detail.restoreInitialMarkup === 'function'
+          out.firstCall = event.detail.restoreInitialMarkup()
+          out.text = document.querySelector('p').textContent
+          out.injectedGone = !document.getElementById('injected')
+          out.classGone = !document.body.classList.contains('js-enhanced')
+          document.querySelector('p').click() // the restored node carries no listener
+          out.listenerFired = listenerFired
+          out.secondCall = event.detail.restoreInitialMarkup() // restoring twice is safe
+          out.textAfterSecond = document.querySelector('p').textContent
+          resolve(out)
+        })
+
+        // the module runs first, capturing the markup as it was served
+        window.checkIfCssIsDisabled({ justCheck: true, snapshot: true })
+
+        // then the JS enhancements run
+        const paragraph = document.querySelector('p')
+        paragraph.addEventListener('click', () => { listenerFired++ })
+        paragraph.textContent = 'enhanced by JS'
+        document.body.classList.add('js-enhanced')
+        document.body.insertAdjacentHTML('beforeend', '<b id="injected">injected by JS</b>')
+
+        // then a stylesheet fails partway through the app's usage
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = 'http://localhost:3000/test/nonexistent.css'
+        document.head.appendChild(link)
+      })
+    })
+    expect(result.hasRestore).toBe(true)
+    expect(result.firstCall).toBe(true)
+    expect(result.text).toBe('hello') // the enhanced text is gone
+    expect(result.injectedGone).toBe(true)
+    expect(result.classGone).toBe(true)
+    expect(result.listenerFired).toBe(0) // listeners die with the nodes they were bound to
+    expect(result.secondCall).toBe(true)
+    expect(result.textAfterSecond).toBe('hello')
+  })
+
+  test('should not expose restoreInitialMarkup when the snapshot flag is not set', async ({ page, browserName }) => {
+    await page.goto('http://localhost:3000/test/linkTagDoesNotLoad.html')
+    const result = await page.evaluate(() => {
+      let detail
+      window.addEventListener('cssDisabled', (event) => {
+        detail = event.detail
+      })
+      window.checkIfCssIsDisabled({ justCheck: true })
+      return { restore: typeof detail.restoreInitialMarkup, message: typeof detail.message }
+    })
+    expect(result.restore).toBe('undefined') // absent, so opting out is unambiguous
+    expect(result.message).toBe('string')
+  })
+
+  // the two tests below pin the web component limitation documented in USAGE.md: restoring
+  // inserts fresh copies of custom elements, so they upgrade and enhance themselves again
+  // unless the developer deactivates them first
+  const restoreWithWebComponent = (deactivateBeforeRestoring) => {
+    return new Promise((resolve) => {
+      const out = {}
+      window.addEventListener('cssDisabled', (event) => {
+        if (deactivateBeforeRestoring) window.componentsDisabled = true
+        event.detail.restoreInitialMarkup()
+        out.connectedCountAfter = window.connectedCount
+        out.widgetTextAfter = document.getElementById('widget').textContent
+        resolve(out)
+      })
+
+      // the module runs first, capturing <my-widget> before it has been upgraded
+      window.checkIfCssIsDisabled({ justCheck: true, snapshot: true })
+
+      // then the web component is registered, which upgrades and enhances the element
+      window.connectedCount = 0
+      window.componentsDisabled = false
+      window.customElements.define('my-widget', class extends window.HTMLElement {
+        connectedCallback () {
+          if (window.componentsDisabled) return
+          window.connectedCount++
+          this.textContent = 'enhanced by web component'
+        }
+      })
+      out.connectedCountBefore = window.connectedCount
+      out.widgetTextBefore = document.getElementById('widget').textContent
+
+      // then a stylesheet fails partway through the app's usage
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = 'http://localhost:3000/test/nonexistent.css'
+      document.head.appendChild(link)
+    })
+  }
+
+  test('should re-run web components when restoring, unless they are deactivated first', async ({ page, browserName }) => {
+    await page.goto('http://localhost:3000/test/webComponent.html')
+    const result = await page.evaluate(restoreWithWebComponent, false)
+    expect(result.connectedCountBefore).toBe(1) // the component enhanced the element
+    expect(result.widgetTextBefore).toBe('enhanced by web component')
+    expect(result.connectedCountAfter).toBe(2) // restoring upgraded a fresh copy of it
+    expect(result.widgetTextAfter).toBe('enhanced by web component') // so the enhancement came back
+  })
+
+  test('should leave web components alone when restoring if they are deactivated first', async ({ page, browserName }) => {
+    await page.goto('http://localhost:3000/test/webComponent.html')
+    const result = await page.evaluate(restoreWithWebComponent, true)
+    expect(result.connectedCountBefore).toBe(1)
+    expect(result.widgetTextBefore).toBe('enhanced by web component')
+    expect(result.connectedCountAfter).toBe(1) // connectedCallback bailed out
+    expect(result.widgetTextAfter).toBe('plain markup') // the served markup survived
   })
 })

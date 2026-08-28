@@ -1,3 +1,9 @@
+## 2.1.0
+
+- Added an opt-in feature to reset the page back to the markup the server originally sent when CSS fails. Supply a `snapshot` flag to `params` to capture the markup, then call `restoreInitialMarkup()` from the `detail` of the `cssDisabled` event to put it back. See the usage docs for the list of things this does not undo.
+- Fixed a bug that would prevent the module from detecting that CSS is disabled by a Content Security Policy which forbids inline styles.
+- Updated dependencies.
+
 ## 2.0.2
 
 - Fixed a bug that would prevent the module from detecting new `<link>` tags inserted into the page after the DOM loads.
